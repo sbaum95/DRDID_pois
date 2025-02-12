@@ -103,17 +103,18 @@ reg_did_panel <-function(y1, y0, D, covariates, i.weights = NULL,
   # Normalize weights
   i.weights <- i.weights/mean(i.weights)
   #-----------------------------------------------------------------------------
-  #Compute the Outcome regression for the control group using ols.
-  # reg.coeff <- stats::coef(stats::lm(deltaY ~ -1 + int.cov,
-  #                                    subset = D==0,
-  #                                    weights = i.weights))
-  control_filter <- (D == 0)
-  reg.coeff <- stats::coef(fastglm::fastglm(
-                            x = int.cov[control_filter, , drop = FALSE],
-                            y = deltaY[control_filter],
-                            weights = i.weights[control_filter],
-                            family = gaussian(link = "identity")
-  ))
+  #Compute the Outcome regression for the control group using poisson.
+  reg.coeff <- stats::coef(stats::glm(deltaY ~ -1 + int.cov,
+                                     subset = D==0,
+                                     weights = i.weights,
+                                     family = poisson(link = "log")))
+  #control_filter <- (D == 0)
+  #reg.coeff <- stats::coef(fastglm::fastglm(
+   #                         x = int.cov[control_filter, , drop = FALSE],
+   #                         y = deltaY[control_filter],
+   #                         weights = i.weights[control_filter],
+   #                         family = gaussian(link = "identity")
+  #))
   if(anyNA(reg.coeff)){
     stop("Outcome regression model coefficients have NA components. \n Multicollinearity (or lack of variation) of covariates is probably the reason for it.")
   }
